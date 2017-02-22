@@ -1,34 +1,47 @@
 %%%-------------------------------------------------------------------
-%% @doc teko top level supervisor.
+%%   _/_/_/_/_/  _/_/_/_/  _/    _/    _/_/
+%%      _/      _/        _/  _/    _/    _/
+%%     _/      _/_/_/    _/_/      _/    _/
+%%    _/      _/        _/  _/    _/    _/
+%%   _/      _/_/_/_/  _/    _/    _/_/
+%%
+%% @doc Top level Teko supervisor
+%%
+%% @copyright 2017 Dennis Drown
 %% @end
 %%%-------------------------------------------------------------------
-
 -module(teko_sup).
 
 -behaviour(supervisor).
 
-%% API
 -export([start_link/0]).
-
-%% Supervisor callbacks
 -export([init/1]).
 
--define(SERVER, ?MODULE).
 
 %%====================================================================
 %% API functions
-%%====================================================================
-
+%%--------------------------------------------------------------------
+-spec start_link() -> {ok, pid()}
+                    | ignore
+                    | {error, term()}.
+%
+% @doc  Sets up top level Teko supervisor
+% @end  --
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
 
 %%====================================================================
-%% Supervisor callbacks
-%%====================================================================
-
-%% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
+% Supervisor callbacks
+%%--------------------------------------------------------------------
+-spec init(list()) -> {ok, tuple()}.
+%
+% @doc  Sets up top level Teko supervisor
+% @end  --
 init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
+    % Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
+    {ok, { {one_for_one, 0, 1}, [{wui, {wui, start_link, []}, transient, 1000, worker, [wui]}
+                                ]}}.
 
 %%====================================================================
 %% Internal functions

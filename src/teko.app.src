@@ -8,7 +8,8 @@
     stdlib
    ]},
   {env,[]},
-  {modules, []},
+  {modules, [llog,
+             wui]},
 
   {maintainers, []},
   {licenses, []},
