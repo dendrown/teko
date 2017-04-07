@@ -1,0 +1,13 @@
+<html>
+<body>
+<h1>Bonvenon al Teko...</h1>
+<p>
+<erl>
+
+out(Arg) -> 
+    {html, "This part from Erlang<br/>" ++ io_lib:format("<~p>", [Arg])}.
+
+</erl>
+</p>
+</body>
+</html>
