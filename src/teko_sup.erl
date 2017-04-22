@@ -40,8 +40,8 @@ start_link() ->
 % @end  --
 init([]) ->
     % Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
-    {ok, { {one_for_one, 0, 1}, [{wui, {wui, start_link, []}, transient, 1000, worker, [wui]}
-                                ]}}.
+    {ok, { {all_for_one, 0, 1}, [{wui, {wui, start_link, []}, transient, 1000, worker, [wui]}
+                                 | wui:get_child_specs()]}}.
 
 %%====================================================================
 %% Internal functions

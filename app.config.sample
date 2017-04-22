@@ -8,5 +8,6 @@
                          {lager_file_backend, [{file, "console.log"}, {level, info}]}]}]},
 
 
+    {yaws, [{embedded, true}]},
     {teko, []}
 ].

@@ -32,6 +32,7 @@ start(_StartType, _StartArgs) ->
     llog:start(),
     ?notice("Teko is opening up"),
     teko_sup:start_link().
+  %%wui:configure().
 
 
 
