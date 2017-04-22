@@ -11,10 +11,14 @@ _build/
 app.config
 yaws.conf
 rebar.lock
+compile_commands.json
 
 ebin/*.beam
 log/*.access
 log/*.auth
+log/console.log
+log/crash.log
+log/error.log
 log/report.log
 priv/*.pem
 www/dist/css/

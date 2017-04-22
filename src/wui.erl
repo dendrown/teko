@@ -13,44 +13,42 @@
 -module(wui).
 -behaviour(gen_server).
 
--export([start_link/0,
+-export([start_link/1,
         stop/0,
         configure/0,
-        get_child_specs/0]).
+        get_conf/0]).
 -export([init/1, terminate/2, code_change/3, handle_call/3, handle_cast/2, handle_info/2]).
 
 -include("teko.hrl").
 -include("llog.hrl").
+-include("wui.hrl").
 
 
 % TODO: Move config to the configuration
 -define(ID,       "teko_wui").
 -define(DOC_ROOT, "/tmp/teko/www").
--define(GCONFS,   [{id, ?ID}]).
+-define(GCONFS,   [{id, ?ID},
+                   {logdir, "/tmp/teko/log"}]).
 -define(SCONFS,   [{port,       8080},
                    {servername, "teko"},
                    {listen,     {0,0,0,0}},
                    {docroot,    ?DOC_ROOT}]).
 
-
--record(state, {gconf       ::  tuple(),
-                sconfs      :: [tuple()],
-                childSpecs  :: [tuple()]}).
+-record(state, {yaws :: yaws_conf()}).
 -type state() :: #state{}.
 
 
 %%====================================================================
 %% API
 %%--------------------------------------------------------------------
--spec start_link() -> {ok, pid()}
-                    |  ignore
-                    |  {error, term()}.
+-spec start_link(yaws_conf()) -> {ok, pid()}
+                              |  ignore
+                              |  {error, term()}.
 %%
 % @doc  Startup function for the web interface module.
 % @end  --
-start_link() ->
-    io:format("HERE<wui>~n"),
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [hello], []).
+start_link(Conf) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Conf], []).
 
 
 %%--------------------------------------------------------------------
@@ -75,35 +73,42 @@ configure() ->
 
 
 %%--------------------------------------------------------------------
--spec get_child_specs() -> [tuple()].
+-spec get_conf() -> [tuple()].
 %%
 % @doc  Gets child process run specifications for YAWS processes.
 %       A supervisor should call this function.
 % @end  --
-get_child_specs() ->
-    gen_server:call(?MODULE, get_child_specs).
+get_conf() ->
+    {ok, SConfs, GConf, ChildSpecs} = yaws_api:embedded_start_conf(?DOC_ROOT,
+                                                                   ?SCONFS,
+                                                                   ?GCONFS,
+                                                                   ?ID),
+    Conf = #yaws_conf{id     = ?ID,
+                      gConf  = GConf,
+                      sConfs = SConfs,
+                      childSpecs = ChildSpecs},
+
+    ?info("YAWS: id[~p]", [Conf#yaws_conf.id]),
+
+    %debug("YAWS: glob[~p]", [Conf#yaws_conf.gConf]),
+    %debug("YAWS: srvs[~p]", [Conf#yaws_conf.sConfs]),
+    %debug("YAWS: chSp[~p]", [Conf#yaws_conf.childSpecs]),
+    Conf.
 
 
 
 %%====================================================================
 %% Server Implementation
 %%--------------------------------------------------------------------
--spec init(atom()) -> {gen_init_rc(), term()}.
+-spec init([yaws_conf()]) -> {gen_init_rc(), term()}.
 %%
 % @doc  Initialization for the cortex server.
 % @end  --
-init(Args) ->
-    ?notice("Web User Interface ON: args[~p]", Args),
+init([Conf]) ->
+    ?notice("Web User Interface ON: args[~p]", [Conf#yaws_conf.id]),
     process_flag(trap_exit, true),
 
-    % YAWS startup
-    {ok, SConfs, GConf, ChildSpecs} = yaws_api:embedded_start_conf(?DOC_ROOT,
-                                                                   ?SCONFS,
-                                                                   ?GCONFS,
-                                                                   ?ID),
-    {ok, #state{gconf  = GConf,
-                sconfs = SConfs,
-                childSpecs = ChildSpecs}}.
+    {ok, #state{yaws = Conf}}.
 
 
 %%--------------------------------------------------------------------
@@ -138,12 +143,10 @@ code_change(OldVsn, State, _Extra) ->
 %%
 % @doc  Synchronous messages for the web user interface server.
 % @end  --
-handle_call(get_child_specs, _From, State) ->
-    {reply, #state.childSpecs, State};
-
-
 handle_call(configure, _From, State) ->
-    ConfStatus = yaws_api:setconf(State#state.gconf, State#state.sconfs),
+    Conf = State#state.yaws,
+    ?info("Setting YAWS configuration ~s", [Conf#yaws_conf.id]),
+    ConfStatus = yaws_api:setconf(Conf#yaws_conf.gConf, Conf#yaws_conf.sConfs),
     {reply, ConfStatus, State};
 
 

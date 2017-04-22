@@ -17,6 +17,8 @@
 -export([start_link/0]).
 -export([init/1]).
 
+-include("wui.hrl").
+
 
 %%====================================================================
 %% API functions
@@ -39,9 +41,12 @@ start_link() ->
 % @doc  Sets up top level Teko supervisor
 % @end  --
 init([]) ->
+    WuiConf = wui:get_conf(),
+
     % Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
-    {ok, { {all_for_one, 0, 1}, [{wui, {wui, start_link, []}, transient, 1000, worker, [wui]}
-                                 | wui:get_child_specs()]}}.
+    {ok, { {one_for_all, 0, 1}, [{wui, {wui, start_link, [WuiConf]}, transient, 1000, worker, [wui]}
+                                 | WuiConf#yaws_conf.childSpecs
+                                ]}}.
 
 %%====================================================================
 %% Internal functions
