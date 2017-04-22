@@ -88,11 +88,10 @@ get_conf() ->
                       sConfs = SConfs,
                       childSpecs = ChildSpecs},
 
-    ?info("YAWS: id[~p]", [Conf#yaws_conf.id]),
-
-    %debug("YAWS: glob[~p]", [Conf#yaws_conf.gConf]),
-    %debug("YAWS: srvs[~p]", [Conf#yaws_conf.sConfs]),
-    %debug("YAWS: chSp[~p]", [Conf#yaws_conf.childSpecs]),
+    %?debug("YAWS: id[~p]", [Conf#yaws_conf.id]),
+    %?debug("YAWS: glob[~p]", [Conf#yaws_conf.gConf]),
+    %?debug("YAWS: srvs[~p]", [Conf#yaws_conf.sConfs]),
+    %?debug("YAWS: chSp[~p]", [Conf#yaws_conf.childSpecs]),
     Conf.
 
 
@@ -105,7 +104,7 @@ get_conf() ->
 % @doc  Initialization for the cortex server.
 % @end  --
 init([Conf]) ->
-    ?notice("Web User Interface ON: args[~p]", [Conf#yaws_conf.id]),
+    ?notice("Web User Interface ON: id[~s]", [Conf#yaws_conf.id]),
     process_flag(trap_exit, true),
 
     {ok, #state{yaws = Conf}}.
